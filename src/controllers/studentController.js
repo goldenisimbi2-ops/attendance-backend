@@ -27,3 +27,14 @@ export async function attendanceSummary(req, res, next) {
     res.json({ success: true, data: { totalSessions: total, present, absent, late, excused, attendancePercentage } });
   } catch (err) { next(err); }
 }
+
+export async function listStudents(req, res, next) {
+  try {
+    const students = await User.findAll({
+      where: { role: 'student' },
+      include: ['studentProfile'],
+      attributes: { exclude: ['password'] }
+    });
+    res.json({ success: true, data: students });
+  } catch (err) { next(err); }
+}

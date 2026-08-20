@@ -1,4 +1,4 @@
-import { ClassSubject, Class, Subject, User } from '../database/models/index.js';
+import { ClassSubject, Class, Subject, User, AttendanceSession, AttendanceRecord } from '../database/models/index.js';
 
 export async function createAssignment(req, res, next) {
   try {
@@ -11,7 +11,32 @@ export async function createAssignment(req, res, next) {
   } catch (err) { next(err); }
 }
 
-export async function listAssignments(req, res, next) { try { const rows = await ClassSubject.findAll(); res.json({ success: true, data: rows }); } catch (err){next(err)} }
-export async function getAssignment(req, res, next){ try{ const row = await ClassSubject.findByPk(req.params.id); if(!row) return res.status(404).json({success:false,message:'Not found'}); res.json({success:true,data:row}); }catch(err){next(err)} }
+export async function listAssignments(req, res, next) { 
+  try { 
+    const rows = await ClassSubject.findAll({
+      include: [
+        { model: Class, as: 'class' },
+        { model: Subject, as: 'subject' },
+        { model: User, as: 'teacher' }
+      ]
+    }); 
+    res.json({ success: true, data: rows }); 
+  } catch (err){next(err)} 
+}
+export async function getAssignment(req, res, next){ try{ const row = await ClassSubject.findByPk(req.params.id, { include: ['class', 'subject', 'teacher'] }); if(!row) return res.status(404).json({success:false,message:'Not found'}); res.json({success:true,data:row}); }catch(err){next(err)} }
 export async function updateAssignment(req, res, next){ try{ const row = await ClassSubject.findByPk(req.params.id); if(!row) return res.status(404).json({success:false,message:'Not found'}); await row.update(req.body); res.json({success:true,data:row}); }catch(err){next(err)} }
-export async function deleteAssignment(req, res, next){ try{ const row = await ClassSubject.findByPk(req.params.id); if(!row) return res.status(404).json({success:false,message:'Not found'}); await row.destroy(); res.json({success:true,message:'Deleted'}); }catch(err){next(err)} }
+export async function deleteAssignment(req, res, next) {
+  try {
+    const row = await ClassSubject.findByPk(req.params.id);
+    if (!row) return res.status(404).json({ success: false, message: 'Not found' });
+
+    const sessions = await AttendanceSession.findAll({ where: { classSubjectId: row.id } });
+    for (const session of sessions) {
+      await AttendanceRecord.destroy({ where: { attendanceSessionId: session.id } });
+      await session.destroy();
+    }
+
+    await row.destroy();
+    res.json({ success: true, message: 'Deleted' });
+  } catch (err) { next(err); }
+}

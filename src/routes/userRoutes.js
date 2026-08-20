@@ -4,12 +4,14 @@ import auth from '../middleware/authMiddleware.js';
 import { authorizeRoles } from '../middleware/roleMiddleware.js';
 const router = express.Router();
 
-router.use(auth, authorizeRoles('admin'));
-router.get('/', ctrl.listUsers);
-router.get('/:id', ctrl.getUser);
-router.post('/', ctrl.createUser);
-router.put('/:id', ctrl.updateUser);
-router.delete('/:id', ctrl.deleteUser);
-router.patch('/:id/status', ctrl.patchStatus);
+router.use(auth);
+
+router.get('/', authorizeRoles('admin', 'head_teacher'), ctrl.listUsers);
+router.get('/:id', authorizeRoles('admin', 'head_teacher'), ctrl.getUser);
+
+router.post('/', authorizeRoles('admin'), ctrl.createUser);
+router.put('/:id', authorizeRoles('admin'), ctrl.updateUser);
+router.delete('/:id', authorizeRoles('admin'), ctrl.deleteUser);
+router.patch('/:id/status', authorizeRoles('admin'), ctrl.patchStatus);
 
 export default router;

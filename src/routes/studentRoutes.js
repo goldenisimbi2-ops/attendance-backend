@@ -4,6 +4,8 @@ import auth from '../middleware/authMiddleware.js';
 import { authorizeRoles } from '../middleware/roleMiddleware.js';
 const router = express.Router();
 
+router.get('/', auth, authorizeRoles('admin', 'head_teacher'), ctrl.listStudents);
+
 router.use(auth, authorizeRoles('student'));
 router.get('/me', ctrl.me);
 router.get('/me/attendance', ctrl.myAttendance);

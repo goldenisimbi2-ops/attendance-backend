@@ -1,4 +1,4 @@
-import { AttendanceSession, ClassSubject, User } from '../database/models/index.js';
+import { AttendanceSession, ClassSubject, User, Class, Subject } from '../database/models/index.js';
 
 export async function createSession(req, res, next) {
   try {
@@ -23,7 +23,21 @@ export async function listSessions(req, res, next) {
   } catch (err) { next(err); }
 }
 
-export async function getSession(req, res, next) { try { const s = await AttendanceSession.findByPk(req.params.id); if(!s) return res.status(404).json({success:false,message:'Not found'}); res.json({success:true,data:s}); } catch(err){next(err)} }
+export async function getSession(req, res, next) { 
+  try { 
+    const s = await AttendanceSession.findByPk(req.params.id, {
+      include: [{
+        model: ClassSubject, as: 'classSubject',
+        include: [
+          { model: Class, as: 'class' },
+          { model: Subject, as: 'subject' }
+        ]
+      }]
+    }); 
+    if(!s) return res.status(404).json({success:false,message:'Not found'}); 
+    res.json({success:true,data:s}); 
+  } catch(err){next(err)} 
+}
 
 export async function updateSession(req, res, next) { try { const s = await AttendanceSession.findByPk(req.params.id); if(!s) return res.status(404).json({success:false,message:'Not found'}); if(req.user.role==='teacher' && s.createdBy!==req.user.id) return res.status(403).json({success:false,message:'Forbidden'}); await s.update(req.body); res.json({success:true,data:s}); } catch(err){next(err)} }
 

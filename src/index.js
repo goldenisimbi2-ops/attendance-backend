@@ -15,6 +15,7 @@ import attendanceRoutes from './routes/attendanceRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import registrationKeyRoutes from './routes/registrationKeyRoutes.js';
 import errorHandler from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -41,6 +42,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/registration-keys', registrationKeyRoutes);
 
 app.use(errorHandler);
 

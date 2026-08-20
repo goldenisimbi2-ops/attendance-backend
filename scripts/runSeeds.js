@@ -8,7 +8,14 @@ const models = { User, Class, Subject, StudentProfile, TeacherProfile, ClassSubj
 
 async function run() {
   const seedsDir = path.resolve('src/database/seeds');
-  const files = fs.readdirSync(seedsDir).filter(f => f.endsWith('.js')).sort();
+  const files = [
+    'seedUsers.js',
+    'seedClasses.js',
+    'seedSubjects.js',
+    'seedStudentProfiles.js',
+    'seedTeacherProfiles.js',
+    'seedClassSubjects.js'
+  ];
   const seeded = {};
   for (const file of files) {
     console.log('Seeding', file);

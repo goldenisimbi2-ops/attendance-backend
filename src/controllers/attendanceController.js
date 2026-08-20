@@ -1,4 +1,4 @@
-import { AttendanceRecord, AttendanceSession, StudentProfile, User, sequelize } from '../database/models/index.js';
+import { AttendanceRecord, AttendanceSession, StudentProfile, User, ClassSubject, Class, Subject, sequelize } from '../database/models/index.js';
 import { Op } from 'sequelize';
 
 export async function createRecord(req, res, next) {
@@ -74,4 +74,38 @@ export async function bulkRecords(req, res, next) {
     await t.commit();
     res.json({ success: true, data: results });
   } catch (err) { await t.rollback(); next(err); }
+}
+
+export async function listAllRecords(req, res, next) {
+  try {
+    const records = await AttendanceRecord.findAll({
+      include: [
+        { model: User, as: 'student', attributes: ['firstName', 'lastName'] },
+        { model: User, as: 'marker', attributes: ['firstName', 'lastName'] },
+        {
+          model: AttendanceSession, as: 'session',
+          include: [{
+            model: ClassSubject, as: 'classSubject',
+            include: [
+              { model: Class, as: 'class', attributes: ['name'] },
+              { model: Subject, as: 'subject', attributes: ['name'] }
+            ]
+          }]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const formatted = records.map(r => ({
+      id: r.id,
+      studentName: r.student ? `${r.student.firstName} ${r.student.lastName}` : 'Unknown',
+      teacherName: r.marker ? `${r.marker.firstName} ${r.marker.lastName}` : 'Teacher',
+      className: r.session?.classSubject?.class?.name || 'Unknown',
+      subjectName: r.session?.classSubject?.subject?.name || 'Unknown',
+      status: r.status,
+      createdAt: r.createdAt
+    }));
+
+    res.json({ success: true, data: formatted });
+  } catch (err) { next(err); }
 }
